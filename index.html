@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your kit tour</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css">
+<style>
+  /* Neutral, nobody's brand: warm-tinted greys in OKLCH, no pure black/white. One column, one spacing scale. */
+  :root {
+    --bg: oklch(0.975 0.004 85); --surface: oklch(0.995 0.003 85); --ink: oklch(0.2 0.005 85); --ink-2: oklch(0.45 0.006 85);
+    --line: oklch(0.9 0.005 85); --soft: oklch(0.95 0.005 85); --sel: oklch(0.22 0.005 85); --sel-ink: oklch(0.98 0.003 85);
+    --code-bg: oklch(0.21 0.005 85); --code-ink: oklch(0.95 0.004 85); --code-btn: oklch(0.32 0.006 85); --ok: oklch(0.52 0.12 150);
+    --focus: oklch(0.55 0.12 250);
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
+    --col: 520px; --gutter: 20px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Arial, Heebo, sans-serif;
+    --mono: ui-monospace, "SF Mono", Consolas, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: oklch(0.17 0.004 85); --surface: oklch(0.21 0.005 85); --ink: oklch(0.95 0.004 85); --ink-2: oklch(0.72 0.006 85);
+            --line: oklch(0.3 0.005 85); --soft: oklch(0.24 0.005 85); --sel: oklch(0.93 0.004 85); --sel-ink: oklch(0.2 0.005 85);
+            --code-bg: oklch(0.12 0.004 85); --code-btn: oklch(0.28 0.006 85); --ok: oklch(0.72 0.13 150); --focus: oklch(0.72 0.12 250); }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-text-size-adjust: 100%; }
+  body { height: 100dvh; display: grid; place-items: center; overflow: hidden; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  a { color: inherit; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  code { font-family: var(--mono); font-size: .9em; background: var(--soft); padding: 1px 6px; border-radius: 6px; }
+
+  /* ONE frame, same size on every screen. Header and buttons never move; only the middle scrolls. */
+  .app { width: 100%; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; background: var(--bg); }
+  .col { padding-left: var(--gutter); padding-right: var(--gutter); }
+  @media (min-width: 700px) {
+    body { background: var(--soft); }
+    .app { width: 560px; height: min(760px, calc(100dvh - 48px)); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: var(--bg); --gutter: 32px; }
+  }
+
+  header { padding-top: var(--s5); padding-bottom: var(--s4); border-bottom: 1px solid var(--line); }
+  .stages { display: flex; gap: var(--s2); }
+  .stages div { flex: 1; min-width: 0; }
+  .stages i { display: block; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .stages i b { display: block; height: 100%; width: 0; background: var(--ink); }
+  .stages span { display: block; margin-top: var(--s2); font-size: 12px; font-weight: 500; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stages div.cur span { color: var(--ink); font-weight: 650; }
+
+  main { overflow-y: auto; overscroll-behavior: contain; padding-top: var(--s6); padding-bottom: var(--s6); scrollbar-width: thin; }
+  .screen { display: none; }
+  .screen.on { display: block; }
+  .kicker { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: var(--s2); }
+  h1 { font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -.015em; margin-bottom: var(--s2); text-wrap: balance; }
+  .lead { font-size: 16px; line-height: 1.5; color: var(--ink-2); margin-bottom: var(--s5); text-wrap: pretty; }
+  .lead b { color: var(--ink); font-weight: 600; }
+  p { font-size: 16px; line-height: 1.55; }
+  .small { font-size: 14px; color: var(--ink-2); line-height: 1.5; margin-top: var(--s5); }
+
+  /* plain divided list (welcome, design): no card grid */
+  .feat { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+  .feat li { display: grid; grid-template-columns: 32px 1fr; column-gap: var(--s3); padding: var(--s4) 0; border-bottom: 1px solid var(--line); }
+  .feat .ic { font-size: 20px; line-height: 24px; }
+  .feat b { font-size: 16px; font-weight: 600; line-height: 24px; }
+  .feat small { grid-column: 2; font-size: 14px; color: var(--ink-2); line-height: 1.45; }
+
+  /* selectable rows */
+  .opts { display: grid; gap: var(--s2); }
+  .opt { text-align: left; width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-md); padding: var(--s4); display: flex; gap: var(--s3); align-items: flex-start; }
+  .opt:hover { border-color: var(--ink-2); }
+  .opt .dot { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--ink-2); margin-top: 3px; }
+  .opt.on { border-color: var(--sel); box-shadow: inset 0 0 0 1px var(--sel); }
+  .opt.on .dot { border: 5px solid var(--sel); }
+  .opt b { display: block; font-size: 16px; font-weight: 600; }
+  .opt small { display: block; font-size: 14px; color: var(--ink-2); margin-top: 2px; line-height: 1.45; }
+  .opt .path { font-family: var(--mono); font-size: 12.5px; color: var(--ink); background: var(--soft); border-radius: 6px; padding: 2px 6px; display: inline-block; margin-top: var(--s2); }
+  .note { margin-top: var(--s4); padding: var(--s3) var(--s4); border-radius: var(--r-md); background: var(--soft); font-size: 14px; line-height: 1.5; }
+  .note.warn { background: transparent; border: 1px solid var(--ink); }
+  .linkbtn { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 48px; border: 1px solid var(--ink); border-radius: var(--r-md); font-weight: 600; font-size: 15px; text-decoration: none; margin-bottom: var(--s5); }
+  .linkbtn:hover { background: var(--soft); }
+
+  /* command rows */
+  .list { border-top: 1px solid var(--line); }
+  .row { width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: none; padding: var(--s4) 0; display: grid; grid-template-columns: 76px 1fr 16px; column-gap: var(--s3); align-items: baseline; }
+  .row > code { justify-self: start; }
+  .row b { font-weight: 600; font-size: 16px; }
+  .row .ex { display: none; font-size: 14px; color: var(--ink-2); margin-top: var(--s2); line-height: 1.5; }
+  .row.open .ex { display: block; }
+  .row::after { content: "+"; color: var(--ink-2); text-align: right; }
+  .row.open::after { content: "\2212"; }
+  .row:hover b { text-decoration: underline; text-underline-offset: 3px; }
+
+  input[type=text] { width: 100%; font: inherit; font-size: 18px; padding: 0 var(--s4); height: 52px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--ink); outline: none; }
+  input[type=text]:hover { border-color: var(--ink-2); }
+  input[type=text]:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  input[type=text]:disabled { opacity: .6; }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
+  .chips button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 0 var(--s3); height: 36px; font-size: 14px; }
+  .chips button:hover { border-color: var(--ink-2); }
+  .chips button.on { background: var(--sel); color: var(--sel-ink); border-color: var(--sel); }
+  .lbl { font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: .04em; margin-top: var(--s5); }
+  .lbl:first-of-type { margin-top: 0; }
+
+  .seg { display: flex; background: var(--soft); border-radius: var(--r-md); padding: 3px; gap: 3px; margin-bottom: var(--s5); }
+  .seg button { flex: 1; border: 0; background: none; border-radius: 9px; height: 38px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px oklch(0 0 0 / .12); }
+
+  ol.steps { list-style: none; padding: 0; counter-reset: s; display: grid; gap: var(--s3); }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 24px 1fr; column-gap: var(--s3); font-size: 16px; line-height: 1.5; }
+  ol.steps li::before { content: counter(s); width: 24px; height: 24px; border-radius: 50%; background: var(--soft); color: var(--ink); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+
+  .cmd { display: flex; gap: var(--s2); align-items: center; background: var(--code-bg); border-radius: var(--r-md); padding: var(--s2) var(--s2) var(--s2) var(--s4); margin-top: var(--s2); }
+  .cmd code { flex: 1; min-width: 0; background: none; color: var(--code-ink); padding: var(--s1) 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: normal; }
+  .cmd code.long { overflow-wrap: anywhere; }
+  .copy { flex: none; border: 0; border-radius: var(--r-sm); height: 34px; padding: 0 var(--s3); font-size: 13px; font-weight: 600; background: var(--code-btn); color: var(--code-ink); }
+  .copy:hover { filter: brightness(1.15); }
+  .copy.done { background: var(--ok); color: var(--sel-ink); }
+
+  details { margin-top: var(--s5); }
+  details summary { list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); display: inline-flex; gap: var(--s2); align-items: center; min-height: 32px; }
+  details summary:hover { color: var(--ink); }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "+"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid currentColor; font-size: 12px; }
+  details[open] summary::before { content: "\2212"; }
+  details > *:not(summary) { margin-top: var(--s2); font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+
+  .check { display: flex; gap: var(--s3); align-items: center; margin-top: var(--s5); font-size: 15px; font-weight: 500; min-height: 44px; padding: 0 var(--s4); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); cursor: pointer; }
+  .check:hover { border-color: var(--ink-2); }
+  .check input { width: 18px; height: 18px; accent-color: var(--sel); }
+  .status { margin-top: var(--s3); font-size: 14px; color: var(--ink-2); }
+  .status.good { color: var(--ok); font-weight: 600; }
+  .secondary { width: 100%; height: 48px; border: 1px solid var(--ink); background: transparent; border-radius: var(--r-md); font-size: 15px; font-weight: 600; margin-top: var(--s5); }
+  .secondary:hover { background: var(--soft); }
+
+  /* buttons: always the same place, same sizes */
+  footer { border-top: 1px solid var(--line); padding-top: var(--s4); padding-bottom: max(var(--s4), env(safe-area-inset-bottom)); background: var(--bg); }
+  .bar { display: grid; grid-template-columns: 104px 1fr; gap: var(--s2); }
+  #back { height: 52px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-md); font-size: 15px; font-weight: 600; color: var(--ink); }
+  #back:hover:not(:disabled) { border-color: var(--ink-2); }
+  #back:disabled { color: var(--line); background: transparent; cursor: default; }
+  #cta { height: 52px; border: 0; border-radius: var(--r-md); background: var(--sel); color: var(--sel-ink); font-size: 16px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 var(--s4); }
+  #cta:hover:not(:disabled) { filter: brightness(1.12); }
+  #cta:disabled { background: var(--soft); color: var(--ink-2); cursor: default; }
+  @media (prefers-reduced-motion: no-preference) { button, input, .opt, .check { transition: border-color .15s ease-out, background-color .15s ease-out; } }
+
+  /* v3: open page (no box), larger type, spacing instead of lines, Remix icons */
+  html { font-size: 17px; }
+  body { display: block; overflow: hidden; background: var(--bg); }
+  .app { width: 100%; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; }
+  .col { padding-left: var(--gutter); padding-right: var(--gutter); }
+  header, main > .screen, footer .bar { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; }
+  header { border-bottom: 0; padding-top: var(--s6); padding-bottom: var(--s2); }
+  main { padding-top: var(--s6); padding-bottom: var(--s7); }
+  footer { border-top: 0; padding-top: var(--s4); padding-bottom: max(var(--s6), env(safe-area-inset-bottom)); background: var(--bg); }
+  @media (min-width: 700px) {
+    body { background: var(--bg); }
+    .app { width: 100%; height: 100dvh; border: 0; border-radius: 0; --gutter: 32px; }
+    main { padding-top: var(--s7); }
+  }
+  [class^="ri-"], [class*=" ri-"] { line-height: 1; vertical-align: -0.12em; }
+  .star { color: oklch(0.75 0.15 80); font-size: .95em; }
+
+  .stages span { font-size: 13px; }
+  .kicker { font-size: 14px; margin-bottom: var(--s3); }
+  h1 { font-size: 32px; margin-bottom: var(--s3); }
+  .lead { font-size: 19px; margin-bottom: var(--s6); }
+  p, ol.steps li { font-size: 18px; }
+  .small { font-size: 16px; }
+  @media (min-width: 700px) { h1 { font-size: 40px; } .lead { font-size: 20px; } }
+
+  /* lists: spacing, not lines */
+  .feat, .list { border-top: 0; display: grid; gap: var(--s5); }
+  .feat li { border-bottom: 0; padding: 0; grid-template-columns: 44px 1fr; column-gap: var(--s4); }
+  .feat .ic, .row .ic { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--soft); display: grid; place-items: center; font-size: 22px; grid-row: span 2; }
+  .feat b { font-size: 18px; line-height: 1.3; align-self: end; }
+  .feat small { font-size: 16px; }
+  .row { border-bottom: 0; padding: 0; grid-template-columns: 44px auto 1fr 24px; column-gap: var(--s4); align-items: center; }
+  .row > code { font-size: 15px; }
+  .row b { font-size: 18px; }
+  .row .ex { grid-column: 2 / 4; font-size: 16px; }
+  .row > div { display: contents; }
+  .row::after { content: ""; }
+  .row .chev { font-size: 22px; color: var(--ink-2); justify-self: end; }
+  .row.open .chev { transform: rotate(180deg); }
+
+  /* options: filled when selected, no heavy outlines */
+  .opts { gap: var(--s3); }
+  .opt { border: 0; background: var(--soft); padding: var(--s4) var(--s5); border-radius: var(--r-lg); }
+  .opt:hover { background: color-mix(in oklch, var(--soft), var(--ink) 6%); }
+  .opt.on { background: var(--sel); color: var(--sel-ink); box-shadow: none; }
+  .opt.on small, .opt.on .path { color: var(--sel-ink); opacity: .8; }
+  .opt.on .path { background: transparent; padding-left: 0; }
+  .opt .dot { border-color: var(--ink-2); }
+  .opt.on .dot { border-color: var(--sel-ink); }
+  .opt b { font-size: 18px; }
+  .opt small { font-size: 15px; }
+
+  input[type=text] { height: 60px; font-size: 20px; border: 0; background: var(--soft); border-radius: var(--r-lg); }
+  input[type=text]:focus { box-shadow: 0 0 0 2px var(--ink); }
+  .chips button { border: 0; background: var(--soft); height: 40px; font-size: 16px; padding: 0 var(--s4); }
+  .seg { padding: 4px; }
+  .seg button { height: 44px; font-size: 16px; }
+  .cmd code { font-size: 15.5px; }
+  .copy { height: 38px; font-size: 14px; }
+  .check { border: 0; background: var(--soft); min-height: 56px; font-size: 17px; border-radius: var(--r-lg); }
+  .secondary { border: 0; background: var(--soft); height: 56px; font-size: 17px; border-radius: var(--r-lg); }
+  .linkbtn { border: 0; background: var(--soft); min-height: 56px; font-size: 17px; border-radius: var(--r-lg); }
+  .note { font-size: 16px; }
+  .note.warn { border: 0; background: color-mix(in oklch, var(--soft), oklch(0.7 0.15 60) 18%); }
+  details summary { font-size: 16px; min-height: 40px; }
+  details summary::before { content: none; }
+  details summary::after { content: "\ea4e"; font-family: remixicon; font-size: 20px; }
+  details summary::after { display: inline-block; }
+  details[open] summary::after { transform: rotate(180deg); }
+  details > *:not(summary) { font-size: 16px; }
+  #back, #cta { height: 58px; font-size: 17px; border-radius: var(--r-lg); }
+  #back { border: 0; background: var(--soft); }
+  .bar { grid-template-columns: 120px 1fr; gap: var(--s3); }
+
+  header, footer { width: 100%; max-width: calc(640px + 2 * var(--gutter)); margin-left: auto; margin-right: auto; }
+  footer .bar { max-width: none; }
+  .row .ic { grid-row: 1; grid-column: 1; }
+  .row > code { grid-row: 1; grid-column: 2; }
+  .row b { grid-row: 1; grid-column: 3; }
+  .row .chev { grid-row: 1; grid-column: 4; }
+  .row .ex { grid-row: 2; grid-column: 2 / 5; margin-top: var(--s2); }
+  .row.open::after, .row::after { content: none; display: none; }
+  .row:hover b { text-decoration: none; }
+  .row:hover .chev { color: var(--ink); }
+  #back:disabled { visibility: hidden; }
+  .row { grid-template-columns: 44px 84px 1fr 24px; }
+  .row > code { justify-self: start; }
+
+  /* ---- the "watch how" demo: a drawn keyboard + Start menu + PowerShell, played step by step ---- */
+  .demo { margin-bottom: var(--s5); }
+  .stage { position: relative; height: 230px; border-radius: var(--r-lg); background: var(--soft); overflow: hidden; display: grid; place-items: center; }
+  .scene { display: none; width: 100%; height: 100%; place-items: center; }
+  .scene.on { display: grid; }
+  .keys { display: flex; gap: 10px; align-items: flex-end; }
+  .key { min-width: 64px; height: 64px; padding: 0 16px; border-radius: 12px; background: var(--surface); color: var(--ink); display: grid; place-items: center; font: 600 16px/1 var(--font);
+         box-shadow: 0 4px 0 color-mix(in oklch, var(--ink) 25%, transparent), 0 0 0 1px var(--line) inset; }
+  .key.dim { opacity: .45; }
+  .key.wide { min-width: 120px; }
+  .key.down { transform: translateY(4px); box-shadow: 0 0 0 color-mix(in oklch, var(--ink) 25%, transparent), 0 0 0 2px var(--focus) inset; background: color-mix(in oklch, var(--surface), var(--focus) 12%); }
+  .winlogo { width: 22px; height: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .winlogo i { background: var(--ink); border-radius: 1px; }
+  .start { width: 78%; max-width: 380px; background: var(--surface); border-radius: 14px; padding: 14px; box-shadow: 0 10px 30px oklch(0 0 0 / .18); }
+  .search { height: 38px; border-radius: 999px; background: var(--soft); display: flex; align-items: center; gap: 8px; padding: 0 14px; font: 15px var(--font); color: var(--ink); }
+  .search .ph { color: var(--ink-2); }
+  .caret { display: inline-block; width: 2px; height: 18px; background: var(--ink); margin-left: 1px; }
+  .result { margin-top: 12px; display: flex; gap: 12px; align-items: center; padding: 10px; border-radius: 10px; font: 15px var(--font); }
+  .result.hl { background: color-mix(in oklch, var(--soft), var(--focus) 14%); }
+  .psico { width: 30px; height: 30px; border-radius: 6px; background: oklch(0.42 0.12 255); color: white; display: grid; place-items: center; font: 700 13px var(--mono); }
+  .result small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .tiles2 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 14px; }
+  .tiles2 i { height: 30px; border-radius: 8px; background: var(--soft); }
+  .ps { width: 86%; max-width: 440px; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px oklch(0 0 0 / .25); }
+  .ps .tb { height: 28px; background: oklch(0.28 0.01 255); color: oklch(0.85 0.01 255); font: 12px var(--font); display: flex; align-items: center; padding: 0 10px; gap: 8px; }
+  .ps .body { background: oklch(0.2 0.03 255); color: oklch(0.92 0.01 255); font: 13.5px/1.6 var(--mono); padding: 12px 12px 18px; min-height: 120px; white-space: pre-wrap; word-break: break-all; }
+  .ps .menu { position: absolute; }
+  .hint { position: absolute; right: 12px; bottom: 12px; font: 600 12px var(--font); background: var(--ink); color: var(--bg); padding: 6px 10px; border-radius: 999px; }
+  .democtl { display: flex; align-items: center; gap: var(--s3); margin-top: var(--s3); }
+  .democtl .cap { flex: 1; font-size: 16px; font-weight: 600; }
+  .democtl .cap small { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+  .democtl button { width: 44px; height: 44px; border: 0; border-radius: 12px; background: var(--soft); font-size: 20px; display: grid; place-items: center; }
+  .democtl button.play { background: var(--sel); color: var(--sel-ink); }
+  .ddots { display: flex; gap: 6px; margin-top: var(--s2); }
+  .ddots i { flex: 1; height: 3px; border-radius: 2px; background: var(--line); }
+  .ddots i.on { background: var(--ink); }
+  .row .ex { display: none; }
+  .row.open .ex { display: grid; gap: var(--s3); }
+  .exl { display: grid; grid-template-columns: 22px 1fr; gap: var(--s2); align-items: start; font-weight: 400; }
+  .exl > i { font-size: 18px; line-height: 1.5; color: var(--ink); }
+  .exl b { font-size: 16px; color: var(--ink); }
+  .tag { display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: color-mix(in oklch, var(--soft), var(--ink) 10%); vertical-align: 2px; }
+  .opt.on .tag { background: color-mix(in oklch, var(--sel), var(--sel-ink) 20%); color: var(--sel-ink); }
+  .opt .bw { display: none; margin-top: var(--s2); color: oklch(0.6 0.16 50); font-weight: 600; }
+  .opt.on .bw { display: block; color: oklch(0.55 0.17 45); opacity: 1; }
+  @media (prefers-color-scheme: dark) { .opt.on .bw { color: oklch(0.5 0.17 45); } }
+  details.tip { margin-top: var(--s4); }
+  @media (max-width: 699px) { #modes .opt { padding: var(--s3) var(--s4); } #modes .opt small { font-size: 14px; } }
+  ol.steps.phone { margin-top: var(--s2); }
+  ol.steps.phone li { font-size: 16px; }
+  details summary::before, details[open] summary::before { content: none !important; display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+<header class="col"><div class="stages" id="stages"></div></header>
+
+<main class="col">
+  <!-- MEET -->
+  <section class="screen" data-name="welcome" data-stage="Meet" data-cta="Let's set it up">
+    <div class="kicker">Welcome</div>
+    <h1>This is your kit</h1>
+    <p class="lead">Your own assistant inside Claude. Setup takes about <b>10 minutes</b>.</p>
+    <ul class="feat">
+      <li><span class="ic"><i class="ri-line-chart-line"></i></span><b>Stock reviews</b><small>Full decks with charts, explained simply.</small></li>
+      <li><span class="ic"><i class="ri-search-line"></i></span><b>Research</b><small>What people really say about anything.</small></li>
+      <li><span class="ic"><i class="ri-film-line"></i></span><b>Watch videos</b><small>Send a link, get what it says and shows.</small></li>
+      <li><span class="ic"><i class="ri-compass-3-line"></i></span><b>Decide ideas</b><small>Turn an idea into taps on your phone.</small></li>
+    </ul>
+    <p class="small">All free. English or Hebrew.</p>
+  </section>
+
+  <section class="screen" data-name="commands" data-stage="Meet" data-cta="Got it">
+    <div class="kicker">Meet</div>
+    <h1>Four commands</h1>
+    <p class="lead">You'll type them in Claude. Tap one for an example.</p>
+    <div class="list">
+      <button type="button" class="row"><span class="ic"><i class="ri-slideshow-3-line"></i></span><code>/slide</code><div><b>Stock reviews</b><div class="ex"><code>/slide roni META</code> makes a quick deck on META. Add <code>deep</code> for the full one.</div></div><i class="ri-arrow-down-s-line chev"></i></button>
+      <button type="button" class="row"><span class="ic"><i class="ri-search-eye-line"></i></span><code>/scout</code><div><b>Watch videos &amp; research</b><div class="ex"><span class="exl"><i class="ri-youtube-line"></i><span><b>Watch any YouTube video.</b> <code>/scout</code> + the link: it pulls the transcript and key frames and tells you what the video shows and says. Works with TikTok, Instagram and X videos too.</span></span><span class="exl"><i class="ri-global-line"></i><span><b>Read any page.</b> Paste an article or website link and get the main points.</span></span><span class="exl"><i class="ri-search-line"></i><span><b>Research a topic.</b> <code>/scout best note apps</code> checks Reddit, Hacker News, GitHub and YouTube, ranks what people actually liked, and saves a short brief with sources.</span></span><span class="exl"><i class="ri-scales-3-line"></i><span><b>Compare.</b> <code>/scout notion vs obsidian</code> lines two things up side by side.</span></span></div></div><i class="ri-arrow-down-s-line chev"></i></button>
+      <button type="button" class="row"><span class="ic"><i class="ri-question-answer-line"></i></span><code>/grill</code><div><b>Decide an idea</b><div class="ex"><code>/grill an app for my friends</code> turns your idea into a question page for your phone.</div></div><i class="ri-arrow-down-s-line chev"></i></button>
+      <button type="button" class="row"><span class="ic"><i class="ri-palette-line"></i></span><code>/design</code><div><b>Your own look</b><div class="ex">Pick colours, a font and a style from real examples. Everything the kit makes then looks like yours.</div></div><i class="ri-arrow-down-s-line chev"></i></button>
+    </div>
+    <p class="small">Forgot one? Type <code>/kit</code>.</p>
+  </section>
+
+  <!-- GITHUB -->
+  <section class="screen" data-name="github" data-stage="GitHub" data-cta="I have an account" data-gate="gh1">
+    <div class="kicker">Step 1 of 2 · GitHub</div>
+    <h1>Get a free GitHub account</h1>
+    <p class="lead">GitHub is like a <b>Google Drive for projects</b>. Your kit lives there, and you'll use it for your own projects later too.</p>
+    <a class="linkbtn" href="https://github.com/signup" target="_blank" rel="noopener">Open github.com/signup</a>
+    <ol class="steps">
+      <li><span>Use the email you check most.</span></li>
+      <li><span>Pick a username you like. It's public, like an Instagram handle.</span></li>
+      <li><span>Confirm the code GitHub emails you.</span></li>
+    </ol>
+    <label class="check"><input type="checkbox" id="gh1"> I have a GitHub account</label>
+    <details><summary>Already have one?</summary><p>Great, just tick the box and continue.</p></details>
+  </section>
+
+  <section class="screen" data-name="invite" data-stage="GitHub" data-cta="Accepted" data-gate="gh2">
+    <div class="kicker">Step 2 of 2 · GitHub</div>
+    <h1>Accept Omri's invite</h1>
+    <p class="lead">The kit is private. Omri invites you so only you can get it.</p>
+    <ol class="steps">
+      <li><span>Send Omri your <b>GitHub username</b>.</span></li>
+      <li><span>Open the email from GitHub: <b>"Omri invited you to collaborate"</b>. Not there? Check spam.</span></li>
+      <li><span>Press <b>Accept invitation</b>.</span></li>
+    </ol>
+    <label class="check"><input type="checkbox" id="gh2"> I accepted the invite</label>
+    <details><summary>No email yet?</summary><p>You can also find it while signed in to GitHub at <b>github.com/notifications</b>. If it's still missing, ask Omri to resend it.</p></details>
+  </section>
+
+  <!-- FOLDER -->
+  <section class="screen" data-name="name" data-stage="Folder" data-cta="Continue" data-gate="name">
+    <div class="kicker">Step 1 of 3 · Folder</div>
+    <h1>Name your folder</h1>
+    <p class="lead">One folder for everything you make with Claude. Pick any name.</p>
+    <input id="fName" type="text" autocomplete="off" spellcheck="false" maxlength="30" placeholder="one word, no spaces">
+    <div class="chips" id="fIdeas"></div>
+    <p class="status" id="fNameMsg"></p>
+  </section>
+
+  <section class="screen" data-name="place" data-stage="Folder" data-cta="Continue">
+    <div class="kicker">Step 2 of 3 · Folder</div>
+    <h1>Where should it live?</h1>
+    <p class="lead">Somewhere short and easy to reach.</p>
+    <div class="opts" id="fLoc"></div>
+    <p class="small">Avoid the Desktop and OneDrive or Dropbox folders.</p>
+  </section>
+
+  <section class="screen" data-name="create" data-stage="Folder" data-cta="Next" data-gate="folder">
+    <div class="kicker">Step 3 of 3 · Folder</div>
+    <h1>Create <span id="fEchoTitle">it</span></h1>
+    <p class="lead">Pick the way that feels easier. Both do the same thing.</p>
+    <div class="seg"><button type="button" class="on" data-way="A">Click</button><button type="button" data-way="B">Type one line</button></div>
+    <div id="wayAbox"><ol class="steps" id="wayA"></ol></div>
+    <div id="wayBbox" hidden>
+      <div class="demo" id="demoMk" data-paste="c0"></div>
+      <details><summary>Read the steps instead</summary><ol class="steps" id="wayB"></ol></details>
+      <div class="cmd"><code id="c0"></code><button type="button" class="copy" data-copy="c0">Copy</button></div>
+      <details><summary>Is this safe?</summary><p id="wayBnote"></p></details>
+    </div>
+    <button type="button" class="secondary" id="fCheck">I made it, check</button>
+    <p class="status" id="fMsg"></p>
+    <label class="check" id="fManual" hidden><input type="checkbox" id="fManualBox"> I created <b id="fEcho"></b></label>
+  </section>
+
+  <!-- CLAUDE -->
+  <section class="screen" data-name="mode" data-stage="Claude" data-cta="Continue" data-gate="mode">
+    <div class="kicker">Step 1 of 4 · Claude</div>
+    <h1>How much should Claude ask you?</h1>
+    <p class="lead">You can switch any time with <b>Shift+Tab</b>.</p>
+    <div class="opts" id="modes">
+      <button type="button" class="opt" data-mode="ask"><span class="dot"></span><span><b>Ask me first</b><small>Asks before every change. Safest, slowest.</small></span></button>
+      <button type="button" class="opt" data-mode="plan"><span class="dot"></span><span><b>Plan first</b><small>Writes a plan, you approve, then it builds.</small></span></button>
+      <button type="button" class="opt" data-mode="auto"><span class="dot"></span><span><b>Auto <i class="ri-star-fill star"></i> <span class="tag">Recommended</span></b><small>Just works, with a safety checker. Claude's normal mode.</small></span></button>
+      <button type="button" class="opt" data-mode="bypass"><span class="dot"></span><span><b>Bypass</b><small>Never asks, nothing checked.</small><small class="bw"><i class="ri-error-warning-line"></i> Can change or delete anything on your computer by mistake. Claude's own docs say: only on a separate machine.</small></span></button>
+    </div>
+    <details class="tip"><summary>What does Omri use?</summary><p>I use Bypass today, but it wasn't my first mode: I started on Ask, because Auto didn't exist yet. Claude recommends Auto, and so do I. It's the best option, and safer than Bypass.</p></details>
+  </section>
+
+  <section class="screen" data-name="terminal" data-stage="Claude" data-cta="It's open">
+    <div class="kicker">Step 2 of 4 · Claude</div>
+    <h1>Open a terminal</h1>
+    <p class="lead">A window where you type instead of click. Nothing to be afraid of.</p>
+    <div class="demo" id="demoOpen" data-paste=""></div>
+    <details><summary>Read the steps instead</summary><ol class="steps" id="openT"></ol></details>
+  </section>
+
+  <section class="screen" data-name="start" data-stage="Claude" data-cta="Claude is open">
+    <div class="kicker">Step 3 of 4 · Claude</div>
+    <h1>Start Claude in your folder</h1>
+    <p class="lead">Paste each line and press <b>Enter</b>.</p>
+    <p class="lbl">GO INTO YOUR FOLDER</p>
+    <div class="cmd"><code id="c1"></code><button type="button" class="copy" data-copy="c1">Copy</button></div>
+    <p class="lbl">START CLAUDE</p>
+    <div class="cmd"><code id="c2"></code><button type="button" class="copy" data-copy="c2">Copy</button></div>
+    <details><summary><i class="ri-smartphone-line"></i> Later, from your phone</summary><ol class="steps phone"><li><span>Get the <b>Claude app</b> on your phone (App Store or Google Play) and sign in with the same account.</span></li><li><span>On the laptop, start Claude with this line instead:</span></li></ol><div class="cmd"><code id="c3"></code><button type="button" class="copy" data-copy="c3">Copy</button></div><ol class="steps phone" start="3" style="counter-reset: s 2"><li><span>In the app, open <b>Code</b>. Your laptop session is there. Write to it like a normal Claude chat.</span></li></ol><p class="small">Already running Claude? Type <code>/remote-control</code> in it instead of restarting. Needs a Pro or Max plan, and the laptop stays on.</p></details>
+  </section>
+
+  <section class="screen" data-name="install" data-stage="Claude" data-cta="Setup is done">
+    <div class="kicker">Step 4 of 4 · Claude · first time only</div>
+    <h1>Install your kit</h1>
+    <p class="lead">Paste this as your first message to Claude. It downloads everything into your folder.</p>
+    <div class="cmd"><code id="c6" class="long">Install my kit here: download https://github.com/jacob6wallace/roy-kit into this folder, then follow its SETUP.md. If GitHub asks me to sign in, walk me through it.</code><button type="button" class="copy" data-copy="c6">Copy</button></div>
+    <p class="small">A GitHub sign-in may pop up in your browser: sign in and press Authorize. Claude asks before installing anything. Come back when it says setup is done.</p>
+  </section>
+
+  <!-- SHORTCUT -->
+  <section class="screen" data-name="shortcut" data-stage="Shortcut" data-cta="Continue" data-gate="shortcut">
+    <div class="kicker">Shortcut</div>
+    <h1>Make a one-word shortcut</h1>
+    <p class="lead">Type it in any terminal and Claude opens in your folder. Omri's is <b>jwin</b>.</p>
+    <input id="scName" type="text" autocomplete="off" spellcheck="false" maxlength="20" placeholder="your shortcut">
+    <div class="chips" id="chips"></div>
+    <details><summary>More ideas</summary>
+      <div class="chips" id="purpose">
+        <button type="button" data-p="os">My own OS</button><button type="button" data-p="stocks">Stocks &amp; slides</button>
+        <button type="button" data-p="build">Building</button><button type="button" data-p="learn">Learning</button>
+      </div>
+    </details>
+    <label class="check"><input type="checkbox" id="scPhone"> Also open it for my phone</label>
+  </section>
+
+  <section class="screen" data-name="shortcut2" data-stage="Shortcut" data-cta="Done">
+    <div class="kicker">Shortcut</div>
+    <h1>Tell Claude to make it</h1>
+    <p class="lead">Paste this to Claude. It shows you the change and asks first.</p>
+    <div class="cmd"><code id="c4"></code><button type="button" class="copy" data-copy="c4">Copy</button></div>
+    <p class="small">Then open a new terminal and type <b id="scEcho"></b>. That's all you need from now on.</p>
+  </section>
+
+  <!-- GRILL -->
+  <section class="screen" data-name="grill" data-stage="Grill" data-cta="Got it">
+    <div class="kicker">Grill</div>
+    <h1>How to grill an idea</h1>
+    <p class="lead">Claude gets you best when you pick from options, not explain.</p>
+    <ol class="steps">
+      <li><span><i class="ri-mic-line"></i> <b>Say it</b> in ChatGPT. Messy is fine.</span></li>
+      <li><span><b>Copy your own words</b>, not ChatGPT's answer.</span></li>
+      <li><span>Type <code>/grill</code>, paste, Enter.</span></li>
+      <li><span><b>Tap</b> answers on the page. <i class="ri-star-fill"></i> = recommended.</span></li>
+      <li><span><b>Copy</b> and paste back to Claude.</span></li>
+    </ol>
+    <details><summary>Why my own words?</summary><p>ChatGPT's mic just turns your voice into text. Claude understands your raw thinking (jumping around, "wait, actually…") better than a tidy version. The more you say, the better the questions.</p></details>
+  </section>
+
+  <section class="screen" data-name="design" data-stage="Grill" data-cta="Copy /design" data-final="1">
+    <div class="kicker">Last step</div>
+    <h1>Your first grill: your look</h1>
+    <p class="lead">Pick colours, a font and a style from real examples. You'll learn grills on the way.</p>
+    <ul class="feat">
+      <li><span class="ic"><i class="ri-palette-line"></i></span><b>Real examples</b><small>Apple, Spotify, Robinhood and more.</small></li>
+      <li><span class="ic"><i class="ri-file-text-line"></i></span><b>Your DESIGN.md</b><small>Every deck and page uses your look.</small></li>
+    </ul>
+    <div class="note" id="say" hidden>Copied. Go back to Claude, paste <code>/design</code> and press Enter.</div>
+  </section>
+</main>
+
+<footer class="col"><div class="bar"><button type="button" id="back">Back</button><button type="button" id="cta">Continue</button></div></footer>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  function $(s) { return document.querySelector(s); }
+  function $$(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
+  // commands: non-breaking hyphens on screen (so --flags never split), the real text when copied
+  function setCode(id, t) { var el = document.getElementById(id); el.dataset.text = t; el.textContent = t.replace(/-/g, '\u2011'); }
+
+  var screens = $$('.screen'), cta = $('#cta'), back = $('#back');
+  var STAGES = []; screens.forEach(function (s) { if (STAGES.indexOf(s.dataset.stage) < 0) STAGES.push(s.dataset.stage); });
+  $('#stages').innerHTML = STAGES.map(function (n) { return '<div><i><b></b></i><span>' + n + '</span></div>'; }).join('');
+
+  var K = window.KIT || null;   // written by setup.py once the kit sits in its folder
+  var OS = K ? K.os : (/Mac/.test(navigator.platform) ? 'Darwin' : 'Windows');
+  var win = OS === 'Windows';
+  var state = { folderOK: K ? true : ls('kit-ok') === '1', mode: ls('kit-mode') || 'auto', gh1: !!K || ls('kit-gh1') === '1', gh2: !!K || ls('kit-gh2') === '1' };
+
+  // ---------- navigation ----------
+  var cur = 0;
+  function gateOK(s) {
+    var g = s.dataset.gate;
+    if (g === 'gh1') return state.gh1;
+    if (g === 'gh2') return state.gh2;
+    if (g === 'name') return validName(folder());
+    if (g === 'folder') return state.folderOK;
+    if (g === 'mode') return !!state.mode;
+    if (g === 'shortcut') return validShort() && !!state.mode;
+    return true;
+  }
+  function go(n) {
+    cur = Math.max(0, Math.min(screens.length - 1, n));
+    screens.forEach(function (s, k) { s.classList.toggle('on', k === cur); });
+    var s = screens[cur], st = s.dataset.stage, si = STAGES.indexOf(st);
+    var inStage = screens.filter(function (x) { return x.dataset.stage === st; }), pos = inStage.indexOf(s);
+    $$('#stages > div').forEach(function (d, k) {
+      d.classList.toggle('cur', k === si);
+      d.querySelector('b').style.width = k < si ? '100%' : k > si ? '0' : Math.round((pos + 1) / inStage.length * 100) + '%';
+    });
+    back.disabled = cur === 0;
+    refreshCta();
+    ls('kit-step', s.dataset.name);
+    try { history.replaceState(null, '', '#step=' + s.dataset.name); } catch (e) {}
+    document.querySelector('main').scrollTop = 0;
+    $$('.demo').forEach(function (d) { if (d.demoReset) d.demoReset(); });
+    var inp = s.querySelector('input[type=text]'); if (inp && !inp.value && window.innerWidth > 700) inp.focus();
+  }
+  function refreshCta() {
+    var s = screens[cur], ok = gateOK(s), g = s.dataset.gate, label = s.dataset.cta;
+    if (g === 'name' && ok) label = 'Use “' + folder() + '”';
+    if (!ok) label = {gh1: 'Tick the box when you have one', gh2: 'Tick the box when accepted', name: 'Type a name', folder: 'Make the folder first', mode: 'Pick one', shortcut: state.mode ? 'Type a name' : 'Pick a mode first (Claude step)'}[g] || label;
+    cta.textContent = label; cta.disabled = !ok;
+  }
+  cta.addEventListener('click', function () {
+    var s = screens[cur];
+    if (cta.disabled) return;
+    if (s.dataset.final) { copyText('/design'); $('#say').hidden = false; cta.textContent = 'Copied'; return; }
+    go(cur + 1);
+  });
+  back.addEventListener('click', function () { go(cur - 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey && !cta.disabled && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') { e.preventDefault(); cta.click(); }
+  });
+
+  // ---------- copy ----------
+  function copyText(t, el) {
+    var p = (navigator.clipboard && navigator.clipboard.writeText) ? navigator.clipboard.writeText(t) : Promise.reject();
+    p.catch(function () { if (!el) return; var r = document.createRange(); r.selectNodeContents(el); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); try { document.execCommand('copy'); } catch (e) {} });
+  }
+  $$('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var el = document.getElementById(b.dataset.copy); copyText(el.dataset.text || el.textContent, el);
+      b.textContent = 'Copied'; b.classList.add('done'); setTimeout(function () { b.textContent = 'Copy'; b.classList.remove('done'); }, 1500);
+    });
+  });
+  $$('.row').forEach(function (r) { r.addEventListener('click', function () {
+    var open = !r.classList.contains('open');
+    $$('.row').forEach(function (x) { x.classList.remove('open'); });
+    if (open) r.classList.add('open');
+  }); });
+  // details: opening one closes the others on the same screen
+  $$('details').forEach(function (d) { d.addEventListener('toggle', function () {
+    if (!d.open) return;
+    $$('details').forEach(function (x) { if (x !== d && x.closest('.screen') === d.closest('.screen')) x.open = false; });
+  }); });
+
+  // ---------- github ----------
+  ['gh1', 'gh2'].forEach(function (k) {
+    var box = document.getElementById(k); box.checked = state[k];
+    box.addEventListener('change', function () { state[k] = box.checked; ls('kit-' + k, box.checked ? '1' : ''); refreshCta(); });
+  });
+
+  // ---------- folder ----------
+  var fName = $('#fName');
+  var LOCS = win
+    ? [['c', 'C:\\', 'C: drive (recommended)', 'Short and easy to type, like Omri\'s C:\\Jacob.'],
+       ['home', '%USERPROFILE%\\', 'My user folder', 'Inside C:\\Users\\you. Also fine.'],
+       ['d', 'D:\\', 'D: drive', 'Only if your computer has one.']]
+    : [['home', '~/', 'Home folder (recommended)', 'Easiest to reach.'], ['docs', '~/Documents/', 'Documents', 'One folder deeper.']];
+  var loc = ls('kit-loc') || LOCS[0][0];
+  function base() { for (var j = 0; j < LOCS.length; j++) if (LOCS[j][0] === loc) return LOCS[j][1]; return LOCS[0][1]; }
+  function folder() { return K ? K.folder : (fName.value || '').trim(); }
+  function kitPath() { return K ? K.path : (folder() ? base() + folder() : ''); }
+  function validName(n) { return /^[A-Za-z0-9][A-Za-z0-9_-]{0,29}$/.test(n); }
+  LOCS.forEach(function (l) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.dataset.loc = l[0];
+    b.innerHTML = '<span class="dot"></span><span><b></b><small></small><span class="path"></span></span>';
+    b.querySelector('b').textContent = l[2]; b.querySelector('small').textContent = l[3];
+    b.addEventListener('click', function () { loc = l[0]; ls('kit-loc', loc); state.folderOK = false; ls('kit-ok', ''); upd(); });
+    $('#fLoc').appendChild(b);
+  });
+  ['royhq', 'royos', 'roylab', 'stockdesk', 'mybase'].forEach(function (n) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = n;
+    b.addEventListener('click', function () { fName.value = n; state.folderOK = false; ls('kit-ok', ''); upd(); });
+    $('#fIdeas').appendChild(b);
+  });
+  fName.addEventListener('input', function () { state.folderOK = false; ls('kit-ok', ''); upd(); });
+  function li(list, id) { document.getElementById(id).innerHTML = list.map(function (t) { return '<li><span>' + t + '</span></li>'; }).join(''); }
+  function fillWays(n) {
+    var N = '<b>' + esc(n) + '</b>';
+    if (win) {
+      var goTo = loc === 'c' ? 'Click <b>This PC</b> on the left, then open <b>Local Disk (C:)</b>.'
+               : loc === 'd' ? 'Click <b>This PC</b> on the left, then open the <b>D:</b> drive.'
+               : 'Click the address bar at the top, type <b>%USERPROFILE%</b>, press <b>Enter</b>.';
+      li(['Press <b>Windows key + E</b>. The folders window opens.', goTo, 'Right-click an empty spot → <b>New</b> → <b>Folder</b>.', 'Type ' + N + ', press <b>Enter</b>.'], 'wayA');
+      li(['Press the <b>Windows key</b>, type <b>PowerShell</b>, press <b>Enter</b>.', 'Copy the line below, click in that window, <b>right-click</b> to paste.', 'Press <b>Enter</b>. No red text means it worked.'], 'wayB');
+      $('#wayBnote').textContent = 'PowerShell is just a window where you type an instruction instead of clicking. This line only makes one empty folder. It can\'t delete or change anything.';
+      li(['Press the <b>Windows key</b>, type <b>PowerShell</b>, press <b>Enter</b>.', 'A dark window opens. That\'s it.'], 'openT');
+    } else {
+      var goM = loc === 'docs' ? 'Press <b>Cmd + Shift + O</b> (Documents).' : 'Press <b>Cmd + Shift + H</b> (your home folder).';
+      li(['Click <b>Finder</b> in the Dock.', goM, 'Press <b>Cmd + Shift + N</b>. A new folder appears.', 'Type ' + N + ', press <b>Enter</b>.'], 'wayA');
+      li(['Press <b>Cmd + Space</b>, type <b>Terminal</b>, press <b>Enter</b>.', 'Copy the line below, click in Terminal, press <b>Cmd + V</b>.', 'Press <b>Enter</b>. No message means it worked.'], 'wayB');
+      $('#wayBnote').textContent = 'Terminal is just a window where you type an instruction instead of clicking. This line only makes one empty folder. It can\'t delete or change anything.';
+      li(['Press <b>Cmd + Space</b>, type <b>Terminal</b>, press <b>Enter</b>.', 'A window opens. That\'s it.'], 'openT');
+    }
+  }
+  $$('.seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      $$('.seg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      $('#wayAbox').hidden = b.dataset.way !== 'A'; $('#wayBbox').hidden = b.dataset.way !== 'B';
+    });
+  });
+  $('#fCheck').addEventListener('click', function () {
+    var n = folder(), msg = $('#fMsg');
+    if (!window.showDirectoryPicker) { msg.textContent = 'This browser can\'t check folders. Tick the box once it exists.'; msg.className = 'status'; $('#fManual').hidden = false; return; }
+    msg.textContent = 'A window opens: choose the folder ' + n + ' and press Select Folder.'; msg.className = 'status';
+    window.showDirectoryPicker({mode: 'read'}).then(function (h) {
+      if (h.name.toLowerCase() === n.toLowerCase()) { state.folderOK = true; ls('kit-ok', '1'); msg.textContent = 'Found ' + h.name + '. Your folder is ready.'; msg.className = 'status good'; }
+      else { msg.textContent = 'That one is called "' + h.name + '", not "' + n + '". Try again.'; msg.className = 'status'; }
+      upd();
+    }).catch(function (e) { msg.className = 'status';
+      if (e && e.name === 'AbortError') { msg.textContent = 'No folder chosen. Make it, then check again.'; return; }
+      msg.textContent = 'Your browser could not check it. Tick the box once the folder exists.'; $('#fManual').hidden = false; });
+  });
+  $('#fManualBox').addEventListener('change', function (e) { state.folderOK = e.target.checked; ls('kit-ok', state.folderOK ? '1' : ''); upd(); });
+
+  // ---------- mode ----------
+  var FLAG = {ask: '--permission-mode manual', plan: '--permission-mode plan', auto: '--permission-mode auto', bypass: '--dangerously-skip-permissions'};
+  $$('#modes .opt').forEach(function (b) { b.addEventListener('click', function () { state.mode = b.dataset.mode; ls('kit-mode', state.mode); upd();
+    if (state.mode === 'bypass') b.scrollIntoView({block: 'nearest'}); }); });
+
+  // ---------- shortcut ----------
+  var scName = $('#scName'), scPhone = $('#scPhone'), purpose = null;
+  var osTag = win ? 'win' : (OS === 'Darwin' ? 'mac' : 'lx');
+  function f0() { return folder().toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function first() { return f0() ? f0()[0] : 'm'; }
+  function fromFolder() { var f = f0(); return f ? [first() + osTag, f.slice(0, 2), f.length <= 8 ? f : f.slice(0, 6), first() + 'c'] : ['mywin', 'mc', 'go']; }
+  function IDEAS(p) { var x = first(); return {os: ['os', x + 'os', 'hq', x + 'hq', 'home', 'base'], stocks: ['stocks', 'slides', 'deck', x + 'deck', 'invest', 'ticker'],
+    build: ['lab', x + 'lab', 'make', 'studio', 'forge', 'ship'], learn: ['learn', 'scout', 'study', 'notes', 'brain', 'explore']}[p]; }
+  function validShort() { return /^[A-Za-z][A-Za-z0-9_-]{0,19}$/.test((scName.value || '').trim()); }
+  function chips() {
+    var list = purpose ? IDEAS(purpose).concat(fromFolder().slice(0, 2)) : fromFolder(), seen = {};
+    $('#chips').innerHTML = '';
+    list.forEach(function (n) {
+      if (seen[n] || !/^[a-z][a-z0-9_-]{0,19}$/.test(n)) return; seen[n] = 1;
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = n;
+      b.addEventListener('click', function () { scName.value = n; upd(); });
+      $('#chips').appendChild(b);
+    });
+  }
+  $$('#purpose button').forEach(function (b) { b.addEventListener('click', function () { purpose = b.dataset.p; $$('#purpose button').forEach(function (x) { x.classList.toggle('on', x === b); }); chips(); upd(); }); });
+  scName.addEventListener('input', upd); scPhone.addEventListener('change', upd);
+
+  // ---------- one place that redraws everything from state ----------
+  function upd() {
+    var n = folder(), path = kitPath(), ok = validName(n);
+    if (n !== upd.lastFolder) { upd.lastFolder = n; chips(); }
+    $$('#fIdeas button').forEach(function (c) { c.classList.toggle('on', c.textContent === n); });
+    $('#fNameMsg').textContent = n && !ok ? 'One word: letters, numbers, - or _. No spaces.' : '';
+    $$('#fLoc .opt').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.loc === loc);
+      for (var j = 0; j < LOCS.length; j++) if (LOCS[j][0] === b.dataset.loc) b.querySelector('.path').textContent = LOCS[j][1] + (n || 'yourname');
+    });
+    if (ok) { fillWays(n); setCode('c0', win ? 'mkdir "' + path + '"' : 'mkdir -p ' + path); $('#fEcho').textContent = path; $('#fEchoTitle').textContent = n; }
+    $$('#modes .opt').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === state.mode); });
+    if (state.mode) {
+      setCode('c1', 'cd "' + (path || 'your folder') + '"');
+      setCode('c2', 'claude ' + FLAG[state.mode]);
+      setCode('c3', 'claude ' + FLAG[state.mode] + ' --remote-control');
+    }
+    var s = (scName.value || '').trim();
+    $$('#chips button').forEach(function (c) { c.classList.toggle('on', c.textContent === s); });
+    if (validShort() && state.mode) { setCode('c4', '/kit shortcut ' + s + ' ' + state.mode + (scPhone.checked ? ' phone' : '')); $('#scEcho').textContent = s; }
+    ls('kit-folder', n); ls('kit-path', path);
+    refreshCta();
+  }
+
+  // ---------- "watch how" demo ----------
+  function demo(root) {
+    var pasteId = root.dataset.paste, win = !(window.KIT ? window.KIT.os === 'Darwin' : /Mac/.test(navigator.platform));
+    var LOGO = '<span class="winlogo"><i></i><i></i><i></i><i></i></span>';
+    var WORD = win ? 'PowerShell' : 'Terminal';
+    function pasteText() { var el = pasteId && document.getElementById(pasteId); return el ? (el.dataset.text || el.textContent) : ''; }
+    var S = [
+      { cap: win ? 'Press the Windows key' : 'Press Cmd + Space', sub: win ? 'Bottom-left of your keyboard, between Ctrl and Alt.' : 'Hold Cmd, tap the space bar.',
+        html: function () { return '<div class="keys">' + (win ? '<span class="key dim">Ctrl</span><span class="key" data-k>' + LOGO + '</span><span class="key dim">Alt</span><span class="key wide dim">space</span>'
+                                                         : '<span class="key" data-k>⌘ cmd</span><span class="key wide" data-k>space</span>') + '</div>'; }, press: true },
+      { cap: win ? 'The Start menu opens' : 'Spotlight opens', sub: 'A search box appears.',
+        html: function () { return '<div class="start"><div class="search"><i class="ri-search-line"></i><span class="ph">Search for apps, settings and documents</span></div>' + (win ? '<div class="tiles2"><i></i><i></i><i></i><i></i><i></i><i></i></div>' : '') + '</div>'; } },
+      { cap: 'Type ' + WORD, sub: 'It shows up as the top result.',
+        html: function () { return '<div class="start"><div class="search"><i class="ri-search-line"></i><span class="typed"></span><span class="caret"></span></div><div class="result hl" hidden><span class="psico">' + (win ? '&gt;_' : '$_') + '</span><span>' + (win ? 'Windows PowerShell' : 'Terminal') + '<small>App</small></span></div></div>'; }, type: WORD },
+      { cap: 'Press Enter', sub: 'That opens it.',
+        html: function () { return '<div class="keys"><span class="key wide" data-k>Enter ↵</span></div>'; }, press: true },
+      { cap: (win ? 'PowerShell' : 'Terminal') + ' is open', sub: 'A plain window that waits for you to type. Nothing happens until you do.',
+        html: function () { return '<div class="ps"><div class="tb"><span class="psico" style="width:18px;height:18px;font-size:9px">' + (win ? '&gt;_' : '$_') + '</span>' + (win ? 'Windows PowerShell' : 'Terminal') + '</div><div class="body">' + (win ? 'PS C:\\Users\\Roy&gt; ' : 'roy@mac ~ % ') + '<span class="caret"></span></div></div>'; } }
+    ];
+    if (pasteId) S.push(
+      { cap: win ? 'Right-click to paste' : 'Press Cmd + V to paste', sub: 'The line you copied appears.',
+        html: function () { return '<div class="ps"><div class="tb">' + (win ? 'Windows PowerShell' : 'Terminal') + '</div><div class="body">' + (win ? 'PS C:\\Users\\Roy&gt; ' : 'roy@mac ~ % ') + '<span class="pasted"></span><span class="caret"></span></div></div><span class="hint">' + (win ? 'right-click' : '⌘ V') + '</span>'; }, paste: true },
+      { cap: 'Press Enter. Done', sub: 'No red text means it worked. You can close the window.',
+        html: function () { return '<div class="ps"><div class="tb">' + (win ? 'Windows PowerShell' : 'Terminal') + '</div><div class="body">' + (win ? 'PS C:\\Users\\Roy&gt; ' : 'roy@mac ~ % ') + esc(pasteText()) + '\n' + (win ? 'PS C:\\Users\\Roy&gt; ' : 'roy@mac ~ % ') + '<span class="caret"></span></div></div>'; } });
+    root.innerHTML = '<div class="stage">' + S.map(function () { return '<div class="scene"></div>'; }).join('') + '</div>' +
+      '<div class="ddots">' + S.map(function () { return '<i></i>'; }).join('') + '</div>' +
+      '<div class="democtl"><button type="button" data-a="prev" aria-label="Previous"><i class="ri-arrow-left-s-line"></i></button><span class="cap"></span><button type="button" class="play" data-a="play" aria-label="Play"><i class="ri-play-fill"></i></button><button type="button" data-a="next" aria-label="Next"><i class="ri-arrow-right-s-line"></i></button></div>';
+    var scenes = root.querySelectorAll('.scene'), dots = root.querySelectorAll('.ddots i'), cap = root.querySelector('.cap'), playB = root.querySelector('[data-a=play]');
+    var k = 0, timer = null, sub = [];
+    function clearSub() { sub.forEach(clearTimeout); sub = []; }
+    function show(n, auto) {
+      clearSub(); k = (n + S.length) % S.length;
+      scenes.forEach(function (sc, j) { sc.classList.toggle('on', j === k); if (j === k) sc.innerHTML = S[j].html(); });
+      dots.forEach(function (d, j) { d.classList.toggle('on', j <= k); });
+      cap.innerHTML = '<span>' + (k + 1) + '. ' + S[k].cap + '</span><small>' + S[k].sub + '</small>';
+      var sc = scenes[k], st = S[k];
+      if (st.press) sub.push(setTimeout(function () { sc.querySelectorAll('[data-k]').forEach(function (x) { x.classList.add('down'); }); }, 700),
+                             setTimeout(function () { sc.querySelectorAll('[data-k]').forEach(function (x) { x.classList.remove('down'); }); }, 1500));
+      if (st.type) { var t = sc.querySelector('.typed'); st.type.split('').forEach(function (ch, j) { sub.push(setTimeout(function () { t.textContent += ch; if (j === st.type.length - 1) sc.querySelector('.result').hidden = false; }, 400 + j * 160)); }); }
+      if (st.paste) sub.push(setTimeout(function () { sc.querySelector('.pasted').textContent = pasteText(); }, 1200));
+    }
+    function play(on) {
+      clearInterval(timer); timer = null;
+      playB.innerHTML = on ? '<i class="ri-pause-fill"></i>' : '<i class="ri-play-fill"></i>';
+      playB.setAttribute('aria-label', on ? 'Pause' : 'Play');
+      if (on) { show(k === S.length - 1 ? 0 : k); timer = setInterval(function () { if (k === S.length - 1) { play(false); return; } show(k + 1); }, 3200); }
+    }
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || !root.contains(b)) return;
+      if (b.dataset.a === 'play') play(!timer);
+      if (b.dataset.a === 'next') { play(false); show(k + 1); }
+      if (b.dataset.a === 'prev') { play(false); show(k - 1); }
+    });
+    root.demoReset = function () { play(false); show(0); };
+    show(0);   // still by default; it moves only when he presses Play
+  }
+  $$('.demo').forEach(demo);
+
+  // ---------- start ----------
+  fName.value = K ? K.folder : (ls('kit-folder') || '');
+  if (K) fName.disabled = true;
+  fillWays(folder() || 'yourname'); chips(); upd();
+  var want = (/step=([a-z0-9]+)/.exec(location.hash) || [])[1] || ls('kit-step');
+  var startAt = 0; screens.forEach(function (s, k) { if (s.dataset.name === want) startAt = k; });
+  for (var k = 0; k < startAt; k++) if (!gateOK(screens[k]) && (screens[k].dataset.gate || '') !== 'shortcut') { startAt = k; break; }
+  go(startAt);
+})();
+</script>
+</body>
+</html>
